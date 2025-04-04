@@ -23,20 +23,20 @@ const getUser = async (req, res) => {
   }
 };
 
-    const updateProfile = async (req, res) => {
-    const { username} = req.body;
-    const user = req.user;
+const updateProfile = async (req, res) => {
+  const { username } = req.body;
+  const user = req.user;
 
-    try {
-        const updatedUser = await User.findByIdAndUpdate(
-        user._id,
-        { username },
-        { new: true }
-        );
-        res.status(200).json({ user: updatedUser });
-    } catch (err) {
-        res.status(400).json({ message: "Invalid user ID" });
-    }
-    };
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      { username },
+      { new: true }
+    );
+    res.status(200).json({ user: updatedUser });
+  } catch (err) {
+    res.status(400).json({ message: "Invalid user ID" });
+  }
+};
 
 module.exports = { getProfile, getUser, updateProfile };

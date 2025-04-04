@@ -25,12 +25,18 @@ const postSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    // Comments array, each comment is an object with user, content, and createdAt
+    isDeleted: {
+      type: Boolean,
+      default: false
+    }
+    
+    ,
+   
     comments: [
       {
         userId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',  // Reference to the User model
+          ref: 'User',  
           required: true,
         },
         content: {
@@ -41,6 +47,7 @@ const postSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
+        isDeleted: { type: Boolean, default: false }
       },
     ],
     // Array of upvoted users

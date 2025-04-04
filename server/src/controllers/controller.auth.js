@@ -67,7 +67,9 @@ const auth = async (req, res, next) => {
       if (!user) {
         return res.status(401).json({ message: 'Not authorized, user not found' });
       }
-  
+      if(!user.isActive){
+        return res.status(401).json({success: false, message: "this user is banned"})
+      }
       
       req.user = user;
       next(); 
