@@ -1,55 +1,62 @@
 const cloudinary = require('../config/cloudinary');
 const mongoose = require('mongoose');
-const Post = require('../models/post.model'); // Import your Post model
+const Post = require('../models/post.model'); 
 const { Readable } = require('stream');
 
-// Create a post with an image
 const createPost = async (req, res) => {
   try {
-    const { title, content } = req.body;
-    const image = req.file;  // Multer provides the image file as a buffer
+    const { title, content, latitude, longitude } = req.body;
+    const image = req.file;  
+    const userId = req.user.id;
 
-    if (!image) {
-      return res.status(400).json({ message: 'Image is required' });
+    if (!title || !content) {
+      return res.status(400).json({ message: 'Title and content are required' });
     }
 
-    // Convert the buffer into a readable stream
-    const bufferStream = new Readable();
-    bufferStream.push(image.buffer);
-    bufferStream.push(null);  // Indicate the end of the stream
-
-    // Upload the buffer stream to Cloudinary
-    const uploadResult = await new Promise((resolve, reject) => {
-      bufferStream.pipe(cloudinary.uploader.upload_stream(
-        { folder: 'posts', use_filename: true, unique_filename: false },
-        (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
+    let imageUrl = null;
+    if (image) {
+      const bufferStream = new Readable();
+      bufferStream.push(image.buffer);
+      bufferStream.push(null);  
+      const uploadResult = await new Promise((resolve, reject) => {
+        bufferStream.pipe(cloudinary.uploader.upload_stream(
+          { folder: 'posts', use_filename: true, unique_filename: false },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
           }
-        }
-      ));
-    });
+        ));
+      });
+      imageUrl = uploadResult.secure_url;  
+    }
 
-    // Create the post with the image URL from Cloudinary
+    let location = null;
+    if (latitude && longitude) {
+      location = {
+        type: 'Point',
+        coordinates: [longitude, latitude], 
+      };
+    }
+
     const newPost = new Post({
       title,
       content,
-      image: uploadResult.secure_url,  // Use the image URL returned by Cloudinary
-      userId: req.user._id,  // Assuming the user is authenticated
+      image: imageUrl,  
+      userId,
+      location,  
     });
-
-    // Save the post to the database
+  
     await newPost.save();
-
-    // Respond with the created post
     res.status(201).json({ message: 'Post created successfully', post: newPost });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error creating post' });
   }
 };
+
 
 
 const getPosts = async (req,res) =>{
@@ -82,10 +89,11 @@ return res.status(200).json({success: true, post, countUpvotes, countComments});
 const deletePost = async (req, res)=>{
 const postId = req.params.postId;
 const userId = req.user.id;
+const userRole = req.user.role;
 
 const post =await Post.findById(postId);
 
-if (post.userId.toString() !== userId){
+if (post.userId.toString() !== userId && userRole !=="admin"){
 
   return res.status(401).json({success: false, message: "unauthorized"});
 
@@ -148,6 +156,7 @@ const getComments = async (req, res) =>{
 const deleteComment = async (req, res) =>{
   const commentId = req.params.commentId;
   const userId = req.user.id;
+  const userRole = req.user.role;
   const postId = req.params.postId;
 
   const post = await Post.findById(postId);
@@ -161,7 +170,7 @@ const deleteComment = async (req, res) =>{
   if (!comment || comment.isDeleted) {
     return res.status(404).json({ success: false, message: "Comment not found" });
   }
-  if (comment.userId.toString() !== userId){
+  if (comment.userId.toString() !== userId && userRole !=="admin" ){
     return res.status(401).json({success: false, message:" unauthorized" });
   }
 

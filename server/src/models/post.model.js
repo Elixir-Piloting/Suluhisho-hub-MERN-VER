@@ -13,7 +13,7 @@ const postSchema = new mongoose.Schema(
       required: true,
     },
     image: {
-      type: String,  // Store the URL of the image
+      type: String,
       default: null,
     },
     createdAt: {
@@ -27,16 +27,22 @@ const postSchema = new mongoose.Schema(
     },
     isDeleted: {
       type: Boolean,
-      default: false
-    }
-    
-    ,
-   
+      default: false,
+    },
+    location: {
+      type: {
+        type: String, // Must be 'Point'
+        enum: ['Point'], // Ensures we only store points
+      },
+      coordinates: {
+        type: [Number], // Array of [longitude, latitude]
+      },
+    },
     comments: [
       {
         userId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',  
+          ref: 'User',
           required: true,
         },
         content: {
@@ -47,18 +53,19 @@ const postSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
-        isDeleted: { type: Boolean, default: false }
       },
     ],
-    // Array of upvoted users
     upvotes: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',  // Store the userId of the users who upvoted the post
+        ref: 'User',
       },
     ],
   },
   { timestamps: true }
 );
+
+// Creating an index for efficient geospatial queries
+postSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('Post', postSchema);
