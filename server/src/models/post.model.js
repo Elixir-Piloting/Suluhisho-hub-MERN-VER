@@ -16,6 +16,17 @@ const postSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    category:{
+      type: String,
+      default: "general",
+      
+    },
+
+    resolved:{
+      type: Boolean,
+      default: false
+
+    },
     createdAt: {
       type: Date,
       default: Date.now,
@@ -25,6 +36,7 @@ const postSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    
     isDeleted: {
       type: Boolean,
       default: false,
@@ -38,29 +50,6 @@ const postSchema = new mongoose.Schema(
         type: [Number], // Array of [longitude, latitude]
       },
     },
-    comments: [
-      {
-        userId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
-          required: true,
-        },
-        content: {
-          type: String,
-          required: true,
-        },
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
-    upvotes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      },
-    ],
   },
   { timestamps: true }
 );

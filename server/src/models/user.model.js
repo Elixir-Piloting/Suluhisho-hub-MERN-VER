@@ -11,6 +11,10 @@ const UserSchema = new mongoose.Schema(
       minlength: 3,
       maxlength: 20,
     },
+    profilePic:{
+      type: String,
+      default: "https://shorturl.at/Lx7ah"
+    },
     password: {
       type: String,
       required: true,

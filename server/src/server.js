@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const dotenv = require('dotenv');
 const connect = require('./config/connect.js');
 const authRoutes = require('./routes/auth.routes.js');
@@ -7,10 +8,16 @@ const cookieParser = require('cookie-parser');
 const postRoutes = require('./routes/post.routes.js');
 const adminRoutes = require('./routes/admin.routes.js');
 
+const corsOptions = {
+    origin: "http://localhost:5173", // Make sure there are no trailing slashes
+    credentials: true, // Set to true for allowing credentials (cookies, HTTP authentication)
+  };
+
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors(corsOptions));
 
 connect(); 
 app.use(cookieParser());

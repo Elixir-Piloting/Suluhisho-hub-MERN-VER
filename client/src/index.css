@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@plugin "daisyui";
+@plugin "daisyui" {
+
+  themes: light --default, dark --prefersdark;
+
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  
+}
+#map { height: 180px; }
+
+.leaflet-container{
+  width: 80%;
+  height: 80vh;
+}

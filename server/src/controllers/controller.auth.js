@@ -20,7 +20,7 @@ const register = async (req,res)=>{
 
     await newUser.save();
     
-    res.status(201).json({message: 'User registered successfully'});
+    res.status(201).json({ success: true, message: 'User registered successfully'});
 
 
 
@@ -44,7 +44,7 @@ const login = async (req, res) => {
         maxAge: 3600000,    
         sameSite: 'Strict'  
       });
-    res.status(200).json({ token }, { message: 'logged in success' });
+    res.status(200).json({success: true, token ,message: 'logged in success' ,user});
 
 };
 
@@ -55,7 +55,7 @@ const auth = async (req, res, next) => {
     const token = req.cookies.token;
   
     if (!token) {
-      return res.status(401).json({ message: 'Not authorized, token missing' });
+      return res.status(401).json({success:false, message: 'Not authorized, token missing' });
     }
   
     try {
@@ -70,8 +70,44 @@ const auth = async (req, res, next) => {
       if(!user.isActive){
         return res.status(401).json({success: false, message: "this user is banned"})
       }
+
       
       req.user = user;
+      next(); 
+  
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Token has expired' });
+      }
+  
+      res.status(401).json({ message: 'Invalid token', error: err.message });
+    }
+  };
+
+
+  const check = async (req, res, next) => {
+    const token = req.cookies.token;
+  
+    if (!token) {
+      return res.json({success:false, message: 'Not loged in' });
+    }
+  
+    try {
+      
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);  
+      
+      const user = await User.findById(decoded.id);
+      
+      if (!user) {
+        return res.json({success: false, message: 'Not logged in' });
+      }
+      if(!user.isActive){
+        return res.json({success: false, message: "this user is banned"})
+      }
+      res.json({success: true, message: "this user is banned",user})
+
+      
+      res.user = user;
       next(); 
   
     } catch (err) {
@@ -87,9 +123,9 @@ const auth = async (req, res, next) => {
 
 const logout = async (req, res) => {
     res.clearCookie('token');
-    res.json({ message: 'Logged out successfully' });
+    res.json({ success: true, message: 'Logged out successfully' });
 
 };
 
 
-module.exports = {register, login, logout, auth};
+module.exports = {register, login, logout, auth, check};
